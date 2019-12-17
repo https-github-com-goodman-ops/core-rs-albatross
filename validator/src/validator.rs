@@ -165,10 +165,7 @@ impl Validator {
             // But except for rebranching, this is only the type of the event and a hash, so not
             // very expensive to clone anyway.
             let e = e.clone();
-            tokio::spawn(futures::future::lazy(move|| {
-                this.on_blockchain_event(&e);
-                Ok(())
-            }));
+            tokio::spawn(async move { this.on_blockchain_event(&e); });
         });
 
         // Set up event handlers for validator network events
@@ -401,15 +398,14 @@ impl Validator {
         if slot.public_key().compressed() == &our_public_key {
             let weak = self.self_weak.clone();
             trace!("Spawning thread to produce next block");
-            tokio::spawn(futures::lazy(move || {
+            tokio::spawn(async move {
                 if let Some(this) = Weak::upgrade(&weak) {
                     match this.blockchain.get_next_block_type(None) {
                         BlockType::Macro => { this.produce_macro_block(view_change_proof) },
                         BlockType::Micro => { this.produce_micro_block(view_change_proof) },
                     }
                 }
-                Ok(())
-            }));
+            });
         }
     }
 
