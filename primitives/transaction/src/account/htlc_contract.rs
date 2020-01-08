@@ -122,6 +122,12 @@ pub enum HashAlgorithm {
     Sha256 = 3
 }
 
+impl Default for HashAlgorithm {
+    fn default() -> Self {
+        HashAlgorithm::Blake2b
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum ProofType {
@@ -133,7 +139,7 @@ pub enum ProofType {
 create_typed_array!(AnyHash, u8, 32);
 add_hex_io_fns_typed_arr!(AnyHash, AnyHash::SIZE);
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct CreationTransactionData {
     pub sender: Address,
     pub recipient: Address,
