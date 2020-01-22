@@ -14,7 +14,7 @@ use nimiq_primitives::networks::NetworkId;
 use nimiq_primitives::slot::{SlotCollection, SlotIndex};
 use nimiq_transaction::{SignatureProof, Transaction, TransactionError};
 use nimiq_transaction::account::AccountTransactionVerification;
-use nimiq_transaction::account::staking_contract::{StakingTransactionData, StakingTransactionType};
+use nimiq_transaction::account::staking_contract::{StakingTransactionData, StakingSelfTransactionType};
 
 const CONTRACT_1: &str = "000000000000000000000000000000000000000000000000";
 const CONTRACT_2: &str = "0000000023c34600000000020202020202020202020202020202020202020202000000001ad27480a2f7d485efe6fabad3d780d1ea5ad690bd027a5328f44b612cad1f33347c8df5bde90a340c30877a21861e2173f6cfda0715d35ac2941437bf7e73d7e48fcf6e1901249134532ad1826ad1e396caed2d4d1d11e82d79f93946b21800a00971f000005e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e0000000008f0d180a9edd1613b714ec6107f4ffd532e52727c4f3a2897b3000e9ebccf076e8ffdf4b424f7e798d31dc67bbf9b3776096f101740b3f992ba8a5d0e20860f8d3466b7b58fb6b918eebb3c014bf6bb1cbdcb045c184d673c3db6435f454a1c530b9dfc012a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a00000000000000000000000000";
@@ -216,7 +216,7 @@ fn it_can_apply_retiring_transaction() {
     let mut tx_1 = make_outgoing_transaction();
     tx_1.recipient = tx_1.sender.clone();
     tx_1.proof = SignatureProof::from(key_pair.public.clone(), key_pair.sign(&tx_1.serialize_content())).serialize_to_vec();
-    tx_1.data = StakingTransactionType::Retire.serialize_to_vec();
+    tx_1.data = StakingSelfTransactionType::RetireStake.serialize_to_vec();
     assert_eq!(contract.check_outgoing_transaction(&tx_1, 2), Ok(()));
     assert_eq!(contract.commit_outgoing_transaction(&tx_1, 2), Ok(None));
     assert_eq!(StakingContract::check_incoming_transaction(&tx_1, 2), Ok(()));
@@ -233,7 +233,7 @@ fn it_can_apply_retiring_transaction() {
     tx_2.value = 200_000_000.try_into().unwrap();
     tx_2.recipient = tx_2.sender.clone();
     tx_2.proof = SignatureProof::from(key_pair.public, key_pair.sign(&tx_2.serialize_content())).serialize_to_vec();
-    tx_2.data = StakingTransactionType::Retire.serialize_to_vec();
+    tx_2.data = StakingSelfTransactionType::RetireStake.serialize_to_vec();
     let funds_error = AccountError::InsufficientFunds {
         needed:  200_000_234.try_into().unwrap(),
         balance: 150_000_000.try_into().unwrap(),
@@ -246,7 +246,7 @@ fn it_can_apply_retiring_transaction() {
     tx_3.value = 74_999_766.try_into().unwrap();
     tx_3.recipient = tx_3.sender.clone();
     tx_3.proof = SignatureProof::from(key_pair.public, key_pair.sign(&tx_3.serialize_content())).serialize_to_vec();
-    tx_3.data = StakingTransactionType::Retire.serialize_to_vec();
+    tx_3.data = StakingSelfTransactionType::RetireStake.serialize_to_vec();
     assert_eq!(contract.check_outgoing_transaction(&tx_3, 3), Ok(()));
     assert_eq!(contract.commit_outgoing_transaction(&tx_3, 3), Ok(None));
     assert_eq!(contract.check_outgoing_transaction(&tx_3, 3), Ok(()));
@@ -304,7 +304,7 @@ fn it_can_apply_unstaking_transaction() {
         tx.recipient = tx.sender.clone();
         tx.value = Coin::try_from(total_cost).unwrap() - fee;
         tx.proof = SignatureProof::from(key_pair.public, key_pair.sign(&tx.serialize_content())).serialize_to_vec();
-        tx.data = StakingTransactionType::Retire.serialize_to_vec();
+        tx.data = StakingSelfTransactionType::RetireStake.serialize_to_vec();
         tx
     };
 
@@ -586,7 +586,7 @@ fn it_can_apply_slashes_after_retire() {
     tx_1.value = Coin::from_u64_unchecked(299_999_766);
     tx_1.recipient = tx_1.sender.clone();
     tx_1.proof = SignatureProof::from(key_pair.public.clone(), key_pair.sign(&tx_1.serialize_content())).serialize_to_vec();
-    tx_1.data = StakingTransactionType::Retire.serialize_to_vec();
+    tx_1.data = StakingSelfTransactionType::RetireStake.serialize_to_vec();
     assert_eq!(contract.check_outgoing_transaction(&tx_1, 2), Ok(()));
     assert!(contract.commit_outgoing_transaction(&tx_1, 2).is_ok());
     assert_eq!(StakingContract::check_incoming_transaction(&tx_1, 2), Ok(()));
@@ -663,7 +663,7 @@ fn it_can_apply_unpark_transactions() {
         tx.value = Coin::try_from(total_cost - fee).unwrap();
         tx.fee = Coin::try_from(fee).unwrap();
         tx.proof = SignatureProof::from(key_pair.public, key_pair.sign(&tx.serialize_content())).serialize_to_vec();
-        tx.data = StakingTransactionType::Unpark.serialize_to_vec();
+        tx.data = StakingSelfTransactionType::Unpark.serialize_to_vec();
         tx
     };
 
@@ -757,7 +757,7 @@ fn it_can_revert_unpark_transactions() {
     unpark.value = Coin::try_from(299_999_998).unwrap();
     unpark.fee = Coin::try_from(2).unwrap();
     unpark.proof = SignatureProof::from(key_pair.public, key_pair.sign(&unpark.serialize_content())).serialize_to_vec();
-    unpark.data = StakingTransactionType::Unpark.serialize_to_vec();
+    unpark.data = StakingSelfTransactionType::Unpark.serialize_to_vec();
 
     // Slash
     let mut parked_in_current = contract;

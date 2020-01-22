@@ -49,9 +49,9 @@ impl AccountTransactionVerification for StakingContractVerifier {
 
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Serialize, Deserialize)]
 #[repr(u8)]
-pub enum StakingTransactionType {
-    Retire = 0,
-    Unpark = 1,
+pub enum StakingSelfTransactionType {
+    RetireStake = 0,
+    ReactivateStake = 1,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -88,3 +88,27 @@ impl StakingTransactionData {
         Ok(())
     }
 }
+
+/// We need to distinguish three types of transactions:
+/// 1. Incoming transactions, which include:
+///     - Validator
+///         * Create
+///         * Update
+///         * Retire
+///         * Re-activate
+///         * Unpark
+///     - Staker
+///         * Stake
+///     The type of transaction is given in the data field.
+/// 2. Outgoing transactions, which include:
+///     - Validator
+///         * Drop
+///     - Staker
+///         * Unstake
+///     The type of transaction is given in the proof field.
+/// 3. Self transactions, which include:
+///     - Staker
+///         * Retire
+///         * Re-activate
+///     The type of transaction is given in the data field.
+///
